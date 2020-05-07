@@ -43,6 +43,7 @@ def main(genomes, config):
     ge = []
     birds = []
 
+    #set up the neural netwrok genomes
     for _, g in genomes:
         net = neat.nn.FeedForwardNetwork.create(g, config)
         nets.append(net)
@@ -71,14 +72,13 @@ def main(genomes, config):
             if len(pipes) > 1 and birds[0].x > pipes[0].x + pipes[0].PIPE_TOP.get_width():
                 pipe_ind = 1
         else:
-            run = False
+            run = False #if there is not bird left, then quit running
             break
 
         for x, bird in enumerate(birds):
             bird.move()
-            ge[x].fitness += 0.1 #make sure the bird stay alive and not fly all the way up and down from the screen
-
-            output = nets[x].activate((bird.y, abs(bird.y - pipes[pipe_ind].height), abs(bird.y - pipes[pipe_ind].bottom)))
+            ge[x].fitness += 0.1 #make sure the bird stay alive every 20 secs stay alive will gain 1 fitness point
+            output = nets[x].activate((bird.y, abs(bird.y - pipes[pipe_ind].height), abs(bird.y - pipes[pipe_ind].bottom))) #activate output with inputs
 
             if output[0] > 0.5:
                 bird.jump()
@@ -91,7 +91,7 @@ def main(genomes, config):
                 if pipe.collide(bird):
                     #every time the bird hits the pipe, we remove 1 fitness point from the bird
                     ge[x].fitness -= 1
-                    birds.pop(x)
+                    birds.pop(x) #once it hits, remove the failing birds and anything associated with it
                     nets.pop(x)
                     ge.pop(x)
 
@@ -107,12 +107,12 @@ def main(genomes, config):
         if add_pipe:
                 score += 1
                 for g in ge:
-                    g.fitness += 5
+                    g.fitness += 5 #pass through pipes will gain 5 to fitness score
                 pipes.append(Pipe(700))
         for r in rem:
             pipes.remove(r)
          
-         #if the bird hits the ground
+         #if the bird hits the ground, remove bird
         for x,bird in enumerate(birds):
             if bird.y + bird.img.get_height() >= 730 or bird.y < 0 :
                 birds.pop(x)
@@ -124,7 +124,7 @@ def main(genomes, config):
 def run(config_path):
     config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,
                                 neat.DefaultSpeciesSet,neat.DefaultStagnation,
-                                config_path)
+                                config_path) #define all the properties in Neat that we use
     
     p = neat.Population(config)
 
@@ -136,5 +136,5 @@ def run(config_path):
 
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, "config-feedforward.txt")
+    config_path = os.path.join(local_dir, "config-feedforward.txt") #load the config file
     run(config_path)
